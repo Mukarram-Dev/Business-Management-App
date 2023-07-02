@@ -1,12 +1,39 @@
 package com.mukarram.businessmanagementapp.Activities
 
-import androidx.appcompat.app.AppCompatActivity
+
+
+import BizSolutionsTheme
+import ProductListScreen
 import android.os.Bundle
-import com.mukarram.businessmanagementapp.R
+import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import com.mukarram.businessmanagementapp.NavigationClasses.AppNavGraph
+
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+
+
+        setContent {
+
+
+            BizSolutionsTheme {
+
+                AppNavGraph()
+            }
+
+
+        }
     }
+
+
+
+
+
+
 }
+
