@@ -19,6 +19,7 @@ import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomAppBar
 data class Product(
     val name: String,
     val totalQuantity: Int,
+    val saleQuantity: Int,
     val remainingQuantity: Int
 )
 
@@ -38,17 +39,17 @@ fun ProductListContent() {
     val productList = remember { mutableStateListOf<Product>() }
     productList.addAll(
         listOf(
-            Product("Product A", 100, 50),
-            Product("Product B", 200, 100),
-            Product("Product C", 150, 75),
-            Product("Product D", 300, 200),
+            Product("Product A", 100, 50,50),
+            Product("Product B", 200, 100,100),
+            Product("Product C", 150, 75,75),
+            Product("Product D", 300, 200,100),
         )
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 10.dp)
     ) {
         Spacer(modifier = Modifier.height(15.dp))
         OutlinedTextField(
@@ -74,38 +75,33 @@ fun ProductListContent() {
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
+            Text(
+                text = "Product",
+                style = CustomTypography.subtitle2.copy(color = Color.Black),
+                modifier = Modifier.weight(1f)
+            )
 
-            ) {
-                Text(
-                    text = "Product",
-                    style = CustomTypography.h2.copy(Color.Black)
-                )
-            }
+            Text(
+                text = "Total Qty",
+                style = CustomTypography.subtitle2.copy(color = Color.Black),
+                modifier = Modifier.weight(1.0f)
+            )
 
-            Column(
+            Text(
+                text = "Sale",
+                style = CustomTypography.subtitle2.copy(color = Color.Black),
+                modifier = Modifier.weight(0.6f)
+            )
 
-            ) {
-                Text(
-                    text = "Total Quantity",
-                    style = CustomTypography.h2.copy(Color.Black)
-                )
-            }
+            Text(
+                text = "Remaining",
+                style = CustomTypography.subtitle2.copy(color = Color.Black),
 
-            Column(
-
-            ) {
-                Text(
-                    text = "Remaining",
-                    style = CustomTypography.h2.copy(Color.Black)
-                )
-            }
+            )
         }
-
-        Divider()
+        Divider(thickness = 2.dp)
         Spacer(modifier = Modifier.height(20.dp))
 
 
@@ -129,24 +125,36 @@ fun ProductItem(product: Product) {
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
+
     ) {
         Column(
 
         ) {
             Text(
-                text = product.name,
-                style = CustomTypography.h2.copy(color = LightColors.onSecondary)
+                text = " ${product.name}",
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                modifier = Modifier.width(80.dp)
+
             )
         }
-
-
 
         Column(
 
         ) {
             Text(
                 text = " ${product.totalQuantity}",
-                style = CustomTypography.h2.copy(color = LightColors.onSecondary)
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                modifier = Modifier.width(70.dp)
+            )
+        }
+
+        Column(
+
+        ) {
+            Text(
+                text = " ${product.saleQuantity}",
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                modifier = Modifier.width(70.dp)
             )
         }
 
@@ -157,7 +165,8 @@ fun ProductItem(product: Product) {
         ) {
             Text(
                 text = " ${product.remainingQuantity}",
-                style = CustomTypography.h2.copy(color = LightColors.onSecondary)
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                modifier = Modifier.width(30.dp)
             )
         }
     }

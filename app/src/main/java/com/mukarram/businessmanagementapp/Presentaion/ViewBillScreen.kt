@@ -36,7 +36,7 @@ data class BillReport(
 @Composable
 fun BillReportScreen(navController: NavHostController) {
     Scaffold(
-        topBar = { CustomAppBar(title = "Bill Book",navController)  },
+        topBar = { CustomAppBar(title = "Bill Book", navController) },
         content = {
             it
             Column(modifier = Modifier.fillMaxSize()) {
@@ -52,16 +52,20 @@ fun BillReportScreen(navController: NavHostController) {
 fun FloatingButton(navController: NavHostController) {
 
 
-        FloatingActionButton(
-            shape=RoundedCornerShape(20.dp),
-            backgroundColor= LightColors.primary.copy(alpha = 0.9f),
-            modifier = Modifier.padding(8.dp),
-            onClick = {
-                navController.navigate("create_bill")
-            },
-            content = { Text(text = "Create Bill",
-                style = CustomTypography.h2.copy(color = Color.White)) }
-        )
+    FloatingActionButton(
+        shape = RoundedCornerShape(20.dp),
+        backgroundColor = LightColors.primary.copy(alpha = 0.9f),
+        modifier = Modifier.padding(8.dp),
+        onClick = {
+            navController.navigate("create_bill")
+        },
+        content = {
+            Text(
+                text = "Create Bill",
+                style = CustomTypography.h2.copy(color = Color.White)
+            )
+        }
+    )
 
 }
 
@@ -73,9 +77,9 @@ fun BillReportContent(navController: NavHostController) {
 
     var billList = remember {
         mutableStateListOf(
-            BillReport("Sale Bulb", "29-10-22", 1000,1101),
-            BillReport("Sale Lights", "08-06-23", 200,1102),
-            BillReport("Sale LED TV", "10-02-21", 600,1103),
+            BillReport("Sale Bulb", "29-10-22", 1000, 1101),
+            BillReport("Sale Lights", "08-06-23", 200, 1102),
+            BillReport("Sale LED TV", "10-02-21", 600, 1103),
         )
     }
 
@@ -116,7 +120,7 @@ fun BillReportContent(navController: NavHostController) {
     }
     Spacer(modifier = Modifier.height(16.dp))
 
-    BillListView(billList,selectedProduct.value,selectedDate.value,navController)
+    BillListView(billList, selectedProduct.value, selectedDate.value, navController)
 
 }
 
@@ -196,16 +200,14 @@ fun BillListView(
                 (selectedDate.isEmpty() || bill.bilDate == selectedDate)
 
     }
-    if (filteredBill.isEmpty())
-    {
+    if (filteredBill.isEmpty()) {
         Text("No Bills found")
-    }
-    else {
+    } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
 
             items(filteredBill) { bill ->
 
-                BillBox(bill,navController)
+                BillBox(bill, navController)
 
                 Divider()
 
@@ -215,7 +217,6 @@ fun BillListView(
             }
         }
     }
-
 
 
 }
@@ -245,16 +246,22 @@ fun BillBox(bill: BillReport, navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(horizontalAlignment = Alignment.Start) {
-                    Text(text = bill.bilName, style = CustomTypography.h2.copy(color = LightColors.onSecondary))
+                    Text(
+                        text = bill.bilName,
+                        style = CustomTypography.h2.copy(color = LightColors.onSecondary)
+                    )
                     Spacer(modifier = Modifier.height(5.dp))
-                    Text(text = bill.bilDate, style = CustomTypography.subtitle1.copy(color = LightColors.onSecondary))
+                    Text(
+                        text = bill.bilDate,
+                        style = CustomTypography.subtitle1.copy(color = LightColors.onSecondary)
+                    )
                 }
             }
             Text(
                 text = "Rs.${bill.bilTotalAmount}",
                 style = CustomTypography.h2.copy(color = LightColors.onSecondary),
 
-            )
+                )
         }
     }
 

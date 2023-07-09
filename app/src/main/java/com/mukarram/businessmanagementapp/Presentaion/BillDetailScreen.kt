@@ -34,7 +34,7 @@ data class Bill(
 )
 
 
-@Preview
+
 @Composable
 fun BillDetailScreen(navController: NavHostController) {
     val bill = Bill(
