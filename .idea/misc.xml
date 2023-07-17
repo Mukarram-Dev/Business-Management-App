@@ -4,7 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/BusinessManagementApp/app/src/main/res/drawable/ic_baseline_explore_24.xml" value="0.1" />
+        <entry key="..\:/BusinessManagementApp/app/src/main/res/drawable/ic_baseline_filter_alt_24.xml" value="0.1" />
         <entry key="..\:/BusinessManagementApp/app/src/main/res/drawable/ic_baseline_receipt_24.xml" value="0.141" />
+        <entry key="..\:/BusinessManagementApp/app/src/main/res/drawable/ic_baseline_sort_24.xml" value="0.1" />
         <entry key="..\:/BusinessManagementApp/app/src/main/res/font/poppins.xml" value="0.20555555555555555" />
         <entry key="..\:/BusinessManagementApp/app/src/main/res/font/poppins_medium.xml" value="0.20555555555555555" />
         <entry key="..\:/BusinessManagementApp/app/src/main/res/font/poppins_semibold.xml" value="0.20555555555555555" />

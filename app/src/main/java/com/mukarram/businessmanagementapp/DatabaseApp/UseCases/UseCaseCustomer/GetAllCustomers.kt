@@ -1,13 +1,17 @@
 package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseCustomer
 
+
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Customer
+
 import com.mukarram.businessmanagementapp.DatabaseApp.repositories.CustomerRepository
+import kotlinx.coroutines.flow.Flow
 
-class GetCustomerById(
-    private val  repository: CustomerRepository
+
+class GetAllCustomers(
+    private val repository: CustomerRepository,
 ) {
-    suspend operator fun invoke(customerId: Long?): Customer? {
-
-        return repository.getCustomerById(customerId)
+        suspend fun execute(): Flow<List<Customer>> {
+        return repository.getAllCustomer()
     }
+
 }

@@ -1,6 +1,6 @@
 package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductBill
 
-data class ProductSaleUseCase(
+data class ProductBillUseCase(
     val addProductBill: AddProductBill,
     val getProductBillById: GetProductBillById,
 )

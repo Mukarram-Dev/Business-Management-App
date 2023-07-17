@@ -1,15 +1,15 @@
 package com.mukarram.businessmanagementapp.util
 
 sealed class ProductOrder(val orderType: OrderType) {
-    class Title(orderType: OrderType): NoteOrder(orderType)
-    class Date(orderType: OrderType): NoteOrder(orderType)
-    class Color(orderType: OrderType): NoteOrder(orderType)
+    class ProductName(orderType: OrderType): ProductOrder(orderType)
+    class Date(orderType: OrderType): ProductOrder(orderType)
 
-    fun copy(orderType: OrderType): NoteOrder {
+
+    fun copy(orderType: OrderType): ProductOrder {
         return when(this) {
-            is Title -> Title(orderType)
+            is ProductName -> ProductName(orderType)
             is Date -> Date(orderType)
-            is Color -> Color(orderType)
+
         }
     }
 }

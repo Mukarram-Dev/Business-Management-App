@@ -1,20 +1,20 @@
 package com.mukarram.businessmanagementapp.DatabaseApp.DaoFiles
 
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductBill
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Product
-import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductSale
-import com.mukarram.businessmanagementapp.NavigationClasses.Screen
+
+
 import kotlinx.coroutines.flow.Flow
 @Dao
-interface ProductSaleDao {
-    @Query("SELECT * FROM productSales")
-    fun getAllProductSales(): Flow<List<ProductSale>>
+interface ProductBillDao {
+    @Query("SELECT * FROM productBill")
+    fun getAllProductBill(): Flow<List<ProductBill>>
 
     @Insert
-    suspend fun insertProductSale(productSale: ProductSale)
+    suspend fun insertProductBill(productBill: ProductBill)
 
-    @Query("SELECT * FROM productSales WHERE productSaleId = :productSaleId")
-    fun getProductSalesByProductId(productSaleId: Int):ProductSale
+    @Query("SELECT * FROM productBill WHERE billId = :billId")
+    suspend fun getProductBillById(billId: Long): ProductBill
 }

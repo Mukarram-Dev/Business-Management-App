@@ -1,12 +1,14 @@
 package com.mukarram.businessmanagementapp.DatabaseApp.repositories
 
-import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductSale
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductBill
+
+
 import kotlinx.coroutines.flow.Flow
 
-interface ProductSaleRepository {
-    fun getProduct() : Flow<List<ProductSale>>
-    suspend fun insertProductSale(productSale: ProductSale)
-    suspend fun getProductSalesByProductId(productSaleId: Int) : ProductSale?
+interface ProductBillRepository {
+    fun getProductBill() : Flow<List<ProductBill>>
+    suspend fun insertProductBill(productBill: ProductBill)
+    suspend fun getProductBillById(productBillId: Long) : ProductBill?
 
 
 

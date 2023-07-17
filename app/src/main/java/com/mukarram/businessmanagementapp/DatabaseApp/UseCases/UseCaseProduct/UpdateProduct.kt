@@ -1,4 +1,4 @@
-package com.mukarram.businessmanagementapp.DatabaseApp.UseCases
+package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProduct
 
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Product
 import com.mukarram.businessmanagementapp.DatabaseApp.repositories.ProductRepository

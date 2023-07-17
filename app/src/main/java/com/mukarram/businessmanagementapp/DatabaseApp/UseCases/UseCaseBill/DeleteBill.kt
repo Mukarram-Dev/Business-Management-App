@@ -1,2 +1,2 @@
-package com.mukarram.businessmanagementapp.DatabaseApp.UseCases
+package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseBill
 

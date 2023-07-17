@@ -1,4 +1,4 @@
-package com.mukarram.businessmanagementapp.DatabaseApp.UseCases
+package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProduct
 
 data class ProductUseCase(
 

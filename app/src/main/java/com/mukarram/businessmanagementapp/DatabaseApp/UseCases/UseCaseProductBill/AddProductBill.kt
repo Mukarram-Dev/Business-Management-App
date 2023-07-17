@@ -1,12 +1,14 @@
-package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductSale
+package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductBill
 
-import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductSale
-import com.mukarram.businessmanagementapp.DatabaseApp.repositories.ProductSaleRepository
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductBill
 
-data class AddProductSales(
-    private val productSaleRepository: ProductSaleRepository
+
+import com.mukarram.businessmanagementapp.DatabaseApp.repositories.ProductBillRepository
+
+data class AddProductBill(
+    private val productBillRepository: ProductBillRepository
 ) {
-    suspend operator fun invoke(productSales: ProductSale){
-        return productSaleRepository.insertProductSale(productSales)
+    suspend operator fun invoke(productBill: ProductBill){
+        return productBillRepository.insertProductBill(productBill)
     }
 }

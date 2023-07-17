@@ -1,384 +1,517 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package com.mukarram.businessmanagementapp.Presentaion
+
 
 import CustomTypography
 import LightColors
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.mukarram.businessmanagementapp.CustomAppWidgets.AppCustomButton
 import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomAppBar
+import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomTextField
+
+import com.mukarram.businessmanagementapp.Presentaion.create_bill.CreateBillEvent
+import com.mukarram.businessmanagementapp.Presentaion.create_bill.CreateBillFieldStates
+import com.mukarram.businessmanagementapp.Presentaion.create_bill.CreateBillViewModel
+
+import com.mukarram.businessmanagementapp.Presentaion.product_stock.StockState
+import com.mukarram.businessmanagementapp.Presentaion.product_stock.StockViewModel
+import kotlinx.coroutines.flow.collectLatest
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 @Composable
-fun BillScreen(navController: NavHostController) {
+fun BillScreen(
+    navController: NavHostController,
+    viewModel: CreateBillViewModel = hiltViewModel(),
+    stockViewModel: StockViewModel = hiltViewModel(),
+) {
+
+
+    val state = stockViewModel.state.value
     Scaffold(
-        topBar = { CustomAppBar("Create Bill",navController)  },
+        topBar = { CustomAppBar("Create Bill", navController) },
 
         )
     {
         it
-        BillContent()
+        BillContent(state, viewModel, navController)
     }
 }
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BillContent() {
-    var currentDate by remember { mutableStateOf("") }
-    var customerName by remember { mutableStateOf("") }
-    var selectedItem by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
-    var productQuantity by remember { mutableStateOf("") }
-    var customerAddress by remember { mutableStateOf("") }
-    var salePerUnitPrice by remember { mutableStateOf("") }
-    var billNumber by remember { mutableStateOf("") }
-    var totalBill by remember { mutableStateOf("") }
+fun BillContent(
+    state: StockState,
+    viewModel: CreateBillViewModel,
+    navController: NavHostController,
+
+    ) {
+    val customerName = viewModel.customerName.value
+    val customerAddress = viewModel.customerAddress.value
+    val phoneNumber = viewModel.customerPhone.value
+    val productQuantity = viewModel.productQty.value
+    val salePerUnitPrice = viewModel.salePrice.value
+
+
+    var selectedProduct = viewModel.selectedProduct.value
+    var selectedProductId = viewModel.selectedProductId.value
+    var selectedProductQty = remember { mutableStateOf(0) }
+    var selectedProductPrice = remember { mutableStateOf(0.0) }
+    var textFieldErrorQty = remember { mutableStateOf("") }
+    var textFieldErrorPrice = remember { mutableStateOf("") }
+
+    viewModel.billDate.value = getCurrentDate()
+    viewModel.totalBill.value = calculateTotalBill(salePerUnitPrice, productQuantity)
 
     val context = LocalContext.current
+
+
     val focusManager = LocalFocusManager.current
-    val currentDateFocusRequest = remember { FocusRequester() }
     val customerNameFocusRequest = remember { FocusRequester() }
     val selectedItemFocusRequest = remember { FocusRequester() }
-    val phoneNumberFocusRequest = remember { FocusRequester() }
     val productQuantityFocusRequest = remember { FocusRequester() }
     val customerAddressFocusRequest = remember { FocusRequester() }
     val salePerUnitPriceFocusRequest = remember { FocusRequester() }
+
+    val scaffoldState = rememberScaffoldState()
+    val chipList = remember { mutableStateListOf<String>() }
+
+
+
+
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is CreateBillViewModel.BillUiEvent.ShowSnackbar -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                }
+                is CreateBillViewModel.BillUiEvent.SaveBill -> {
+
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+
+
+
+
+
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
 
-    ) {
+        ) {
 
         Spacer(modifier = Modifier.height(20.dp))
         //customer name field
 
-        OutlinedTextField(
-            value = customerName,
-            onValueChange = { customerName = it },
-            textStyle=CustomTypography.subtitle2
-                .copy(color = LightColors.primary.copy(alpha = 0.7f)),
-            label = {
-                Text(
-                    "Customer Name",
-
-                    style = CustomTypography.subtitle2
-                        .copy(color = LightColors.primary.copy(alpha = 0.7f))
-
-                )
-            },
-            singleLine = true,
+        CustomTextField(
+            label = customerName.text.toString(),
+            onValueChange = { viewModel.onEvent(CreateBillEvent.EnteredCustName(it)) },
+            hint = customerName.hint,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            keyboardActions = KeyboardActions(
-                onNext = { selectedItemFocusRequest.requestFocus() }
-            ),
-            trailingIcon = {
-                if (customerName.isNotEmpty()) {
-                    IconButton(onClick = { customerName = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear")
-                    }
-                }
-            }
-        )
+            imageVector = Icons.Default.Person,
+            contentDescription = "person",
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = customerAddress,
-            onValueChange = { customerAddress = it },
-            textStyle=CustomTypography.subtitle2
-                .copy(color = LightColors.primary.copy(alpha = 0.7f)),
-            label = {
-                Text(
-                    "Customer Address",
-                    style = CustomTypography.subtitle2
-                        .copy(color = LightColors.primary.copy(alpha = 0.7f))
+            )
 
 
-                )
-            },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            keyboardActions = KeyboardActions(
-                onNext = { salePerUnitPriceFocusRequest.requestFocus() }
-            ),
-            trailingIcon = {
-                if (customerAddress.isNotEmpty()) {
-                    IconButton(onClick = { customerAddress = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear")
-                    }
-                }
-            }
-        )
 
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        OutlinedTextField(
-            value = phoneNumber,
-            onValueChange = { phoneNumber = it },
-            textStyle=CustomTypography.subtitle2
-                .copy(color = LightColors.primary.copy(alpha = 0.7f)),
-            label = {
-                Text(
-                    "Phone Number",
+        CustomTextField(
+            label = customerAddress.text.toString(),
+            onValueChange = { viewModel.onEvent(CreateBillEvent.EnteredCustAddress(it)) },
+            hint = customerAddress.hint,
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            imageVector = Icons.Default.LocationOn,
+            contentDescription = "location",
+        )
 
-                    style = CustomTypography.subtitle2
-                        .copy(color = LightColors.primary.copy(alpha = 0.7f))
-                )
-            },
-            singleLine = true,
+
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CustomTextField(
+            label = phoneNumber.text.toString(),
+            onValueChange = { viewModel.onEvent(CreateBillEvent.EnteredCustPhone(it)) },
+            hint = phoneNumber.hint,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            keyboardActions = KeyboardActions(
-                onNext = { productQuantityFocusRequest.requestFocus() }
-            ),
-            trailingIcon = {
-                if (phoneNumber.isNotEmpty()) {
-                    IconButton(onClick = { phoneNumber = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear")
-                    }
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = selectedItem,
-            onValueChange = { selectedItem = it },
-            textStyle=CustomTypography.subtitle2
-                .copy(color = LightColors.primary.copy(alpha = 0.7f)),
-            label = {
-                Text(
-                    "Select Item",
-
-                    style = CustomTypography.subtitle2
-                        .copy(color = LightColors.primary.copy(alpha = 0.7f))
-                )
-            },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(1f),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            keyboardActions = KeyboardActions(
-                onNext = { phoneNumberFocusRequest.requestFocus() }
-            ),
-            trailingIcon = {
-                if (selectedItem.isNotEmpty()) {
-                    IconButton(onClick = { selectedItem = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear")
-                    }
-                }
-            }
+            imageVector = Icons.Default.Phone,
+            contentDescription = "phone",
         )
 
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            OutlinedTextField(
-                value = currentDate,
-                onValueChange = { currentDate = it },
-                label = {
-                    Text(
-                        "Select Date",
-                        style = CustomTypography.subtitle2
-                            .copy(color = LightColors.primary.copy(alpha = 0.7f))
-                    )
-                },
 
 
-                singleLine = true,
-                modifier = Modifier.weight(0.5f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                keyboardActions = KeyboardActions(
-                    onNext = { customerNameFocusRequest.requestFocus() }
-                ),
-                leadingIcon = {
-                    if (currentDate.isNotEmpty()) {
-                        IconButton(onClick = { currentDate = "" }) {
-                            Icon(Icons.Default.DateRange, contentDescription = "dropdown")
-                        }
-                    }
-                }
-            )
 
-            Spacer(modifier = Modifier.width(5.dp))
+        SelectProductBox(
+            state,
+            viewModel,
+            chipList,
+            selectedProductQty,
+            selectedProductPrice
+        )
 
 
-            OutlinedTextField(
-                value = productQuantity,
-                onValueChange = { productQuantity = it },
-                textStyle=CustomTypography.subtitle2
-                    .copy(color = LightColors.primary.copy(alpha = 0.7f)),
-                label = {
-                    Text(
-                        "Product Quantity",
-                        style = CustomTypography.subtitle2
-                            .copy(color = LightColors.primary.copy(alpha = 0.7f))
 
 
-                    )
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.5f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                keyboardActions = KeyboardActions(
-                    onNext = { customerAddressFocusRequest.requestFocus() }
-                ),
-                trailingIcon = {
-                    if (productQuantity.isNotEmpty()) {
-                        IconButton(onClick = { productQuantity = "" }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear")
-                        }
-                    }
-                }
-            )
+        Spacer(modifier = Modifier.height(10.dp))
 
-            // Date Select Option
-            // Implement your date selection logic here
-
-        }
-
-
-       Spacer(modifier = Modifier.height(10.dp))
+//        FlowRow(
+//            maxItemsInEachRow = 3,
+//
+//            horizontalArrangement = Arrangement.SpaceAround
+//        ) {
+//            chipList.forEach { chip ->
+//
+//                Chip(
+//                    onClick = { },
+//                    modifier = Modifier.padding(8.dp),
+//
+//
+//                    shape = RoundedCornerShape(10.dp),
+//                    leadingIcon = {
+//                        IconButton(onClick = {
+//                            chipList.remove(chip)
+//                        }) {
+//                            Icon(
+//                                imageVector = Icons.Default.Delete,
+//                                contentDescription = "deleteIcon",
+//                            )
+//
+//
+//                        }
+//                    },
+//                    colors = ChipDefaults.chipColors(
+//                        backgroundColor = Color.White,
+//                        contentColor = LightColors.primary
+//                    ),
+//                    content = {
+//                        if (chip.isNotBlank()) {
+//                            Text(
+//                                text = chip,
+//                                style = CustomTypography.subtitle1.copy(LightColors.primary)
+//                            )
+//                        }
+//
+//                    })
+//
+//
+//            }
+//        }
 
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+
         ) {
 
-            OutlinedTextField(
-                value = salePerUnitPrice,
-                onValueChange = { salePerUnitPrice = it },
-                textStyle=CustomTypography.subtitle2
-                    .copy(color = LightColors.primary.copy(alpha = 0.7f)),
-                label = {
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .height(80.dp)
+                    .padding(10.dp)
+                    .border(
+                        border = BorderStroke(width = 1.dp, color = LightColors.primary),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .background(color = Color.White, shape = RoundedCornerShape(20.dp))
+
+            ) {
+                Row(
+
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(15.dp)
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.DateRange, contentDescription = "date",
+                        tint = LightColors.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        "Sale Per Unit Price",
+                        text = viewModel.billDate.value,
                         style = CustomTypography.subtitle2
                             .copy(color = LightColors.primary.copy(alpha = 0.7f))
-
                     )
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.5f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.clearFocus() }
-                ),
-                trailingIcon = {
-                    if (salePerUnitPrice.isNotEmpty()) {
-                        IconButton(onClick = { salePerUnitPrice = "" }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear")
-                        }
-                    }
+
+
                 }
-            )
+            }
+
 
             Spacer(modifier = Modifier.width(5.dp))
 
-            OutlinedTextField(
-                value = billNumber,
-                onValueChange = { billNumber = it },
-                textStyle=CustomTypography.subtitle2
-                    .copy(color = LightColors.primary.copy(alpha = 0.7f)),
-                label = {
-                    Text(
-                        "Bill Number",
-                        style = CustomTypography.subtitle2
-                            .copy(color = LightColors.primary.copy(alpha = 0.7f))
-                    )
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(1.0f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.clearFocus() }
-                ),
-                trailingIcon = {
-                    if (billNumber.isNotEmpty()) {
-                        IconButton(onClick = { billNumber = "" }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear")
-                        }
-                    }
-                }
-            )
 
+
+            CustomTextField(
+                label = productQuantity.text.toString(),
+                onValueChange = { viewModel.onEvent(CreateBillEvent.EnteredProdQty(it)) },
+                hint = productQuantity.hint,
+                modifier = Modifier.fillMaxWidth(1.2f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                imageVector = Icons.Default.Add,
+                contentDescription = "add",
+            )
 
 
         }
 
 
+        Spacer(modifier = Modifier.height(10.dp))
 
+
+
+
+        CustomTextField(
+            label = salePerUnitPrice.text.toString(),
+            onValueChange = { viewModel.onEvent(CreateBillEvent.EnteredSalePrice(it)) },
+            hint = salePerUnitPrice.hint,
+            modifier = Modifier.fillMaxWidth(0.5f),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            imageVector = Icons.Default.Send,
+            contentDescription = "sale",
+        )
+
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+
+
+
+
+
+
+        Text(
+            text = textFieldErrorQty.value,
+            style = CustomTypography.subtitle2.copy(color = Color.Red),
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = textFieldErrorPrice.value,
+            style = CustomTypography.subtitle2.copy(color = Color.Red),
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(
-                onClick = {
-                    // Calculate total bill
-                    totalBill = calculateTotalBill()
-                }
-            ) {
-                Text(text = "Calculate Bill")
-            }
 
-            Button(
-                onClick = {
-                    // Save and print bill
-                    if (validateForm()) {
-                        saveAndPrintBill()
-                    }
-                }
+        AppCustomButton(
+            btnText = "Save Bill",
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (customerName.text.toString().isEmpty() ||
+                customerAddress.text.toString().isEmpty() ||
+                phoneNumber.text.toString().isEmpty() ||
+                selectedProduct.isEmpty() ||
+                productQuantity.text.toString().isEmpty() ||
+                salePerUnitPrice.text.toString().isEmpty()
+
             ) {
-                Text(text = "Save and Print Bill")
+
+                Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+
+            } else if (productQuantity.text?.toInt()!! > selectedProductQty.value) {
+
+                textFieldErrorQty.value =
+                    "Not Enough Qty,Have ${selectedProductQty.value} in Stock"
+
+            } else if (salePerUnitPrice.text?.toDouble()!! < selectedProductPrice.value) {
+                textFieldErrorPrice.value = "You Can't Sale This in this price ,You Are in Loss"
+            } else {
+
+
+                saveAndPrintBill(viewModel, navController)
+
+
+                Toast.makeText(context, "Bill Saved", Toast.LENGTH_SHORT).show()
+                Log.e("billDate", viewModel.billDate.value)
+                Log.e("totalAmount", viewModel.totalBill.value.toString())
+                Log.e("productId", selectedProductId)
+
             }
         }
+
+
+
+
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Total Bill: $totalBill",
+            text = if (viewModel.totalBill.value == 0.0) "Total Bill: 0" else "Total bill : ${viewModel.totalBill.value}",
+            color = Color.Black,
             modifier = Modifier.align(Alignment.End)
+
         )
     }
 }
 
+
+@Composable
+fun SelectProductBox(
+
+    state: StockState,
+    viewModel: CreateBillViewModel,
+    chipList: SnapshotStateList<String>,
+    selectedProductQty: MutableState<Int>,
+    selectedProductPrice: MutableState<Double>,
+) {
+    var selectedProduct = viewModel.selectedProduct.value
+    var selectedProductId = viewModel.selectedProductId.value
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .padding(10.dp)
+            .height(60.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .border(
+                width = 1.dp,
+                color = LightColors.primary.copy(alpha = 0.7f),
+                shape = RoundedCornerShape(20.dp)
+            )
+
+            .background(color = Color.White, shape = RoundedCornerShape(20.dp))
+            .clickable { expanded = true }
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(15.dp)
+        ) {
+            Text(
+                text = if (selectedProduct.isNotEmpty()) selectedProduct else "Select Unit",
+                style = CustomTypography.subtitle2
+                    .copy(color = LightColors.primary.copy(alpha = 0.7f))
+            )
+
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown, contentDescription = "dropDown",
+                tint = LightColors.primary
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            modifier = Modifier.background(color = Color.White),
+
+            onDismissRequest = { expanded = false },
+        ) {
+            state.product.forEach { unit ->
+                DropdownMenuItem(
+                    onClick = {
+                        selectedProduct =
+                            viewModel.onEvent(CreateBillEvent.SelectedProduct(unit.name))
+                                .toString()
+                        selectedProductId =
+                            viewModel.onEvent(CreateBillEvent.SelectedProductId(unit.id.toString()))
+                                .toString()
+                        selectedProductQty.value = unit.product_remaining
+                        selectedProductPrice.value = unit.price
+
+
+                        if (chipList.contains(unit.name)) {
+                            return@DropdownMenuItem
+                        } else {
+                            chipList.add(unit.name)
+                        }
+
+                        expanded = false
+                    }
+                ) {
+                    Text(
+                        text = unit.name,
+                        style = CustomTypography.subtitle2
+                            .copy(color = LightColors.primary.copy(alpha = 0.7f))
+                    )
+                }
+            }
+        }
+    }
+}
+
+fun getCurrentDate(): String {
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy")
+    val currentDate = Date()
+    return dateFormat.format(currentDate)
+}
+
 // Helper function to calculate the total bill
-fun calculateTotalBill(): String {
-    // Implement your logic to calculate the total bill
-    return "100" // Dummy value
+fun calculateTotalBill(
+    salePerUnitPrice: CreateBillFieldStates,
+    productQuantity: CreateBillFieldStates,
+
+    ): Double {
+    val price = salePerUnitPrice.text.toString().toDoubleOrNull()
+    val quantity = productQuantity.text.toString().toIntOrNull()
+
+    if (price != null && quantity != null) {
+        return price * quantity
+
+    } else {
+        return 0.0
+    }
+
 }
 
-// Helper function to validate the form
-fun validateForm(): Boolean {
-    // Implement your form validation logic
-    return true // Dummy value
-}
 
-// Helper function to save and print the bill
-fun saveAndPrintBill() {
+fun saveAndPrintBill(viewModel: CreateBillViewModel, navController: NavHostController) {
     // Implement your logic to save and print the bill
+
+    viewModel.saveBillData()
+
+
+
+    navController.navigate("viewBills")
 }
+
+

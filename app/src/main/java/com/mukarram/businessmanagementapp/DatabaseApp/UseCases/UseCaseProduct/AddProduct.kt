@@ -1,4 +1,4 @@
-package com.mukarram.businessmanagementapp.DatabaseApp.UseCases
+package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProduct
 
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.InvalidProductException
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Product

@@ -1,24 +1,16 @@
-package com.mukarram.businessmanagementapp.DatabaseApp.UseCases
+package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseBill
 
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Bill
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.InvalidBillException
-import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.InvalidProductException
-import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Product
 import com.mukarram.businessmanagementapp.DatabaseApp.repositories.BillRepository
-import com.mukarram.businessmanagementapp.DatabaseApp.repositories.ProductRepository
 
 class AddBill (
     private val repository: BillRepository
 )
 {
-    @Throws(InvalidBillException::class)
-    suspend operator fun invoke(bill: Bill){
+    suspend operator fun invoke(bill: Bill) : Long{
 
-        if (bill.date.isBlank()){
-            throw InvalidBillException("Date Can't be Empty")
-        }
-
-        repository.insertBill(bill)
+        return repository.insertBill(bill)
 
     }
 }

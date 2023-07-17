@@ -1,8 +1,10 @@
-package com.mukarram.businessmanagementapp.Activities
+package com.mukarram.businessmanagementapp.Presentaion
 
 import CustomTypography
 import LightColors
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -200,12 +202,17 @@ fun ProfitLossBox(
     Surface(
 
         color = Color.Transparent,
+        elevation=0.5.dp,
         modifier = Modifier
             .padding(15.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(40.dp))
+            .border(
+                border = BorderStroke(width = 1.dp, color = Color.LightGray),
+                shape = RoundedCornerShape(40.dp)
+            )
             .fillMaxWidth()
-            .height(100.dp)
-            .background(color = Color.White.copy(alpha = 1f))
+            .height(90.dp)
+            .background(color = Color.White)
 
 
     ) {

@@ -29,15 +29,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomAppBar
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Product
-import com.mukarram.businessmanagementapp.DatabaseApp.ViewModelClasses.ProductViewModel
+import com.mukarram.businessmanagementapp.Presentaion.add_product.AddProductViewModel
 import androidx.compose.runtime.Composable
-
-
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.mukarram.businessmanagementapp.CustomAppWidgets.AppCustomButton
+import com.mukarram.businessmanagementapp.Presentaion.add_product.AddProductEvents
+import com.mukarram.businessmanagementapp.Presentaion.add_product.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 
 @Composable
-fun AddProductScreen(navController: NavHostController) {
-    val productViewModel: ProductViewModel= viewModel()
+fun AddProductScreen(
+    navController: NavHostController,
+    viewModel : AddProductViewModel=hiltViewModel()
+) {
+
 
     Scaffold(
         topBar = { CustomAppBar("Add Product",navController)  },
@@ -45,22 +51,47 @@ fun AddProductScreen(navController: NavHostController) {
         )
     {
         innerPadding->
-        FormContent(productViewModel,modifier=Modifier.padding(innerPadding))
+        FormContent(viewModel,modifier=Modifier.padding(innerPadding))
     }
 }
 
 
 @Composable
-fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
-    var productName by remember { mutableStateOf("") }
-    var productQuantity by remember { mutableStateOf("") }
-    var purchasePrice by remember { mutableStateOf("") }
-    var selectedUnit by remember { mutableStateOf("") }
+fun FormContent(viewModel: AddProductViewModel, modifier: Modifier) {
+    val prodNameState=viewModel.productName.value
+    val prodQtyState=viewModel.productQty.value
+    val prodPriceState=viewModel.productPrice.value
+    var productTypeState=viewModel.productType.value
+
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event->
+            when(event){
+                is UiEvent.ShowSnackbar-> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                }
+                is UiEvent.SaveProduct-> {
+
+                }
+            }
+        }
+    }
+
+
     val unitList = listOf("Unit", "Gram", "Piece", "Litre")
 
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val productNameFocusRequest = remember { FocusRequester() }
+
+
+
+
+
+
     val productQuantityFocusRequest = remember { FocusRequester() }
     val purchasePriceFocusRequest = remember { FocusRequester() }
 
@@ -73,8 +104,10 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
         ) {
         Spacer(modifier = Modifier.height(15.dp))
         OutlinedTextField(
-            value = productName,
-            onValueChange = { productName = it },
+            value = prodNameState.text,
+            onValueChange = {
+                viewModel.onEvent(AddProductEvents.EnteredProdName(it))
+                            },
 
             label = {
                 Text(
@@ -93,8 +126,8 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
                 onNext = { productQuantityFocusRequest.requestFocus() }
             ),
             trailingIcon = {
-                if (productName.isNotEmpty()) {
-                    IconButton(onClick = { productName = "" }) {
+                if (prodNameState.text.isNotEmpty()) {
+                    IconButton(onClick = { prodNameState.text = "" }) {
                         Icon(Icons.Default.Clear, contentDescription = "Clear")
                     }
                 }
@@ -104,8 +137,10 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
         Spacer(modifier = Modifier.height(15.dp))
 
         OutlinedTextField(
-            value = productQuantity,
-            onValueChange = { productQuantity = it },
+            value = prodQtyState.text,
+            onValueChange = {
+                            viewModel.onEvent(AddProductEvents.EnteredProdQty(it))
+            },
             label = { Text("Product Quantity",
                 style = CustomTypography.subtitle2
                     .copy(color = LightColors.primary.copy(alpha = 0.7f))) },
@@ -119,8 +154,8 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
                 onNext = { purchasePriceFocusRequest.requestFocus() }
             ),
             trailingIcon = {
-                if (productQuantity.isNotEmpty()) {
-                    IconButton(onClick = { productQuantity = "" }) {
+                if (prodQtyState.text.isNotEmpty()) {
+                    IconButton(onClick = { prodQtyState.text = "" }) {
                         Icon(Icons.Default.Clear, contentDescription = "Clear")
                     }
                 }
@@ -130,8 +165,8 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
         Spacer(modifier = Modifier.height(15.dp))
 
         OutlinedTextField(
-            value = purchasePrice,
-            onValueChange = { purchasePrice = it },
+            value = prodPriceState.text,
+            onValueChange = {viewModel.onEvent(AddProductEvents.EnteredProdPrice(it)) },
             label = {
                 Text(
                     "Purchase Price per Unit",
@@ -148,8 +183,8 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
                 onNext = { focusManager.clearFocus() }
             ),
             trailingIcon = {
-                if (purchasePrice.isNotEmpty()) {
-                    IconButton(onClick = { purchasePrice = "" }) {
+                if ( prodPriceState.text.isNotEmpty()) {
+                    IconButton(onClick = {  prodPriceState.text = "" }) {
                         Icon(Icons.Default.Clear, contentDescription = "Clear")
                     }
                 }
@@ -175,7 +210,7 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
                     .padding(15.dp)
             ) {
                 Text(
-                    text = if (selectedUnit.isNotEmpty()) selectedUnit else "Select Unit",
+                    text = if (productTypeState.isNotEmpty()) productTypeState else "Select Unit",
                     style = CustomTypography.subtitle2
                         .copy(color = LightColors.primary.copy(alpha = 0.7f))
                 )
@@ -190,7 +225,8 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
                 unitList.forEach { unit ->
                     DropdownMenuItem(
                         onClick = {
-                            selectedUnit = unit
+                            productTypeState =
+                                viewModel.onEvent(AddProductEvents.SelectProdType(unit)).toString()
                             expanded=false
                         }
                     ) {
@@ -208,63 +244,35 @@ fun FormContent(viewModel: ProductViewModel, modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                // Perform form validation
-                if (productName.isEmpty() || productQuantity.isEmpty() ||
-                    purchasePrice.isEmpty() || selectedUnit.isEmpty()
-                ) {
-                    // Show error message or perform appropriate action
-                    Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-                } else {
-                    // Form is valid, perform action
 
-                    AddProductToDatabase(productName,productQuantity,purchasePrice,selectedUnit,viewModel)
+        AppCustomButton(btnText = "Add Product", modifier = Modifier.fillMaxWidth()) {
+            if (prodNameState.text.isEmpty() || prodQtyState.text.isEmpty() ||
+                prodPriceState.text.isEmpty() || productTypeState.isEmpty()
+            ) {
+                // Show error message or perform appropriate action
+                Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            } else {
+                // Form is valid, perform action
 
-                    Toast.makeText(context, "Product added", Toast.LENGTH_SHORT).show()
+                viewModel.onEvent(AddProductEvents.saveProduct)
 
-                    productName=""
-                    productQuantity=""
-                    purchasePrice=""
-                    selectedUnit=""
+                Toast.makeText(context, "Product added", Toast.LENGTH_SHORT).show()
+
+                prodNameState.text=""
+                prodQtyState.text=""
+                prodPriceState.text=""
+                productTypeState=""
 
 
-                }
-            },
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .background(color = LightColors.background)
-                .clip(RoundedCornerShape(10.dp))
-                .fillMaxWidth()
-        ) {
-            Text(text = "Add Product")
+            }
         }
+
+
     }
 }
 
 
-fun AddProductToDatabase(
-    productName: String,
-    productQuantity: String,
-    purchasePrice: String,
-    selectedUnit: String,
-    viewModel: ProductViewModel
-) {
 
-
-    val pName:String=productName
-    val pQty : Int=productQuantity.toInt()
-    val prchasePrice:Double =purchasePrice.toDouble()
-    val productUnit: String =selectedUnit
-
-
-    val product=Product(0,pName,prchasePrice,pQty,0,productUnit)
-
-    viewModel.insertProduct(product)
-
-
-
-}
 
 
 

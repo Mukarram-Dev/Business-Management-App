@@ -1,4 +1,7 @@
 package com.mukarram.businessmanagementapp
 
-class BusinessApp {
-}
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
+class BusinessApp: Application()

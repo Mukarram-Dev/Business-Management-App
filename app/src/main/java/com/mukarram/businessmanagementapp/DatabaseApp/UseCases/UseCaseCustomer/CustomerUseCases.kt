@@ -1,4 +1,8 @@
 package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseCustomer
 
-class CustomerUseCases {
-}
+data class CustomerUseCases (
+
+    val addCustomer:AddCustomer,
+    val getCustomerById: GetCustomerById,
+    val getAllCustomers : GetAllCustomers,
+)
