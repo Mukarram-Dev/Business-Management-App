@@ -33,8 +33,7 @@ class ProductSaleViewModel @Inject constructor(
             billList.forEach { bill ->
                 val customer =
                     withContext(Dispatchers.IO) { customerUseCases.getCustomerById(bill.customerId) }
-                val productBill =
-                    withContext(Dispatchers.IO) { bill.id?.let { productBillUseCase.getProductBillById(it) } }
+                val productBill =withContext(Dispatchers.IO) { bill.id?.let { productBillUseCase.getProductBillById(it) } }
                 val products= withContext(Dispatchers.IO){productUseCase.getProductById(productBill?.productId!!)}
 
                 if (customer != null && products!=null) {
@@ -44,18 +43,21 @@ class ProductSaleViewModel @Inject constructor(
                             totalBill = productBill?.totalBill ?: 0.0,
                             purchaseDate = bill.date,
                             productName = products.name,
+                            purchasePrie=products.price,
                             productType=products.product_type,
                             saleQty = productBill?.saleQuantity?:0,
                             salePrice = productBill?.salePrice?:0.0
 
                         )
                     )
-                    Log.e("billId",bill.id.toString())
+
                 }
             }
 
             // Update the StateFlow with the collected bill details list
             _SaleDetailsState.value = saleDetailsList
+
+
         }
     }
 

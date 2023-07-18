@@ -1,7 +1,8 @@
-package com.mukarram.businessmanagementapp.Presentaion
+package com.mukarram.businessmanagementapp.Presentaion.home_screen
 
 import CustomTypography
 import LightColors
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,10 +22,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomGridItems
 import com.mukarram.businessmanagementapp.NavigationClasses.Screen
+import com.mukarram.businessmanagementapp.Presentaion.product_sales.ProductSaleViewModel
+import com.mukarram.businessmanagementapp.Presentaion.product_sales.SaleDetailsModel
 import com.mukarram.businessmanagementapp.R
+import kotlin.math.absoluteValue
 
 
 val gridItemToScreenMap = mapOf(
@@ -35,7 +40,18 @@ val gridItemToScreenMap = mapOf(
 )
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(
+    navController: NavHostController,
+    viewModel: ProductSaleViewModel = hiltViewModel(),
+) {
+    // Fetch sale details and calculate profit and loss when saleDetailState changes
+    LaunchedEffect(Unit) {
+        viewModel.fetchSaleDetails()
+    }
+
+    val saleDetailState by viewModel.saleDetailState.collectAsState()
+
+
 
     Box(
         modifier = Modifier
@@ -58,7 +74,7 @@ fun HomeScreen(navController: NavHostController) {
 
 
             ) {
-                ProfitLossBox("5000", "1000")
+                ProfitLossBox(saleDetailState)
             }
 
 
@@ -100,7 +116,7 @@ fun HomeScreen(navController: NavHostController) {
         //bottom navigation bar
         val navItems = listOf(
             NavItem("Home", R.drawable.ic_baseline_home_24, "home"),
-            NavItem("Settings",R.drawable.ic_baseline_settings_24, "settings")
+            NavItem("Settings", R.drawable.ic_baseline_settings_24, "settings")
         )
         var currentRoute by remember { mutableStateOf(navItems.first().route) }
         BottomNavigationBar(
@@ -134,7 +150,7 @@ fun ProductGridSection(navController: NavHostController) {
         modifier = Modifier.padding(5.dp)
     ) {
         items(gridItems.size) { index ->
-            CardItem(gridItems[index],navController)
+            CardItem(gridItems[index], navController)
         }
     }
 
@@ -144,65 +160,68 @@ fun ProductGridSection(navController: NavHostController) {
 @Composable
 fun CardItem(customGridItems: CustomGridItems, navController: NavHostController) {
     val destination = gridItemToScreenMap[customGridItems.titleItem]
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .aspectRatio(1f)
-                .clickable { destination?.let { navController.navigate(it.route) }  }
-                .background(color = LightColors.primary.copy(alpha = 0.9f))
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .aspectRatio(1f)
+            .clickable { destination?.let { navController.navigate(it.route) } }
+            .background(color = LightColors.primary.copy(alpha = 0.9f))
 
+    ) {
+
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+
+            modifier = Modifier.fillMaxSize()
         ) {
 
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
 
-                modifier = Modifier.fillMaxSize()
-            ) {
+            Icon(
+                painter = painterResource(id = customGridItems.icon),
+                contentDescription = "iconAdd",
+                tint = LightColors.onBackground,
+                modifier = Modifier.size(48.dp)
+            )
 
-
-                Icon(
-                    painter = painterResource(id =customGridItems.icon) ,
-                    contentDescription = "iconAdd",
-                    tint = LightColors.onBackground,
-                    modifier = Modifier.size(48.dp)
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
 
-                Text(
-                    text = customGridItems.titleItem,
-                    style = CustomTypography.h2.copy(color = LightColors.onPrimary)
-                )
-
-
-
-            }
+            Text(
+                text = customGridItems.titleItem,
+                style = CustomTypography.h2.copy(color = LightColors.onPrimary)
+            )
 
 
         }
 
 
+    }
+
 
 }
 
 
-
-
 @Composable
 fun ProfitLossBox(
-    profitAmount: String,
-    lossAmount: String
-) {
+    saleDetailState: List<SaleDetailsModel>,
 
+    ) {
+
+
+    val profit = remember { mutableStateOf<Double?>(null) }
+    val loss = remember { mutableStateOf<Double?>(null) }
+
+    LaunchedEffect(saleDetailState) {
+        calculateProfit(saleDetailState, profit, loss)
+    }
 
     Surface(
 
         color = Color.Transparent,
-        elevation=0.5.dp,
+        elevation = 0.5.dp,
         modifier = Modifier
             .padding(15.dp)
             .clip(RoundedCornerShape(40.dp))
@@ -224,17 +243,15 @@ fun ProfitLossBox(
         ) {
 
             Column {
-
                 Text(
-                    text = "Rs.$profitAmount",
-                    style = CustomTypography.h1.copy(color = Color.Green)
+                    text = "Rs.${profit.value?.absoluteValue}",
+                    style = CustomTypography.h2.copy(color = Color.Green)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = "Your Profit",
                     style = CustomTypography.h2.copy(color = LightColors.onSurface)
                 )
-
             }
 
             Box(
@@ -246,22 +263,58 @@ fun ProfitLossBox(
 
 
             Column {
-
                 Text(
-                    text = "Rs.$lossAmount",
-                    style = CustomTypography.h1.copy(color = Color.Red)
+                    text = "Rs.${loss.value?.absoluteValue}",
+                    style = CustomTypography.h2.copy(color = Color.Red)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = "Your Loss",
                     style = CustomTypography.h2.copy(color = LightColors.onSurface)
                 )
-
             }
 
         }
     }
 }
+
+fun calculateProfit(
+    listSale: List<SaleDetailsModel>,
+    profit: MutableState<Double?>,
+    loss: MutableState<Double?>,
+) {
+    if (listSale.isNotEmpty()) {
+        var totalProfit = 0.0
+        var totalLoss = 0.0
+
+        listSale.forEach { sale ->
+            val salePrice = sale.salePrice * sale.saleQty
+            val purchasePrice = sale.purchasePrie * sale.saleQty
+
+            Log.e("salePrice","$salePrice")
+
+            // Calculate the profit/loss for the current product sale
+            val productProfit = salePrice - purchasePrice
+
+            // Add the product's profit/loss to the total profit/loss
+            if (productProfit >= 0) {
+                totalProfit += productProfit
+            } else {
+                totalLoss += productProfit
+            }
+        }
+
+        // Update the mutable states with the total profit and loss
+        profit.value = totalProfit
+        loss.value = totalLoss
+    } else {
+        // If no sales found, set profit and loss to 0
+        profit.value = 0.0
+        loss.value = 0.0
+        Log.e("error", "no sales found")
+    }
+}
+
 
 
 @Composable
@@ -357,17 +410,19 @@ fun BottomNavigationBar(
             BottomNavigationItem(
                 icon = {
                     Icon(
-                        painter = painterResource(id = navItem.icon) ,
+                        painter = painterResource(id = navItem.icon),
                         contentDescription = navItem.title
                     )
                 },
-                label = { Text(
-                    text = navItem.title,
-                    style = TextStyle(
-                        color = if (selectedTab.value == navItem.route) LightColors.primary else Color.LightGray
-                    )
+                label = {
+                    Text(
+                        text = navItem.title,
+                        style = TextStyle(
+                            color = if (selectedTab.value == navItem.route) LightColors.primary else Color.LightGray
+                        )
 
-                ) },
+                    )
+                },
                 selected = selectedTab.value == navItem.route,
                 onClick = { onTabSelected(navItem.route) },
                 selectedContentColor = LightColors.primary,

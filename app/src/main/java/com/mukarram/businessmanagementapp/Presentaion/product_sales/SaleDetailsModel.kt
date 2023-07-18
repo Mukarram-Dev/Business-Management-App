@@ -8,4 +8,5 @@ data class SaleDetailsModel(
     val purchaseDate: String,
     val totalBill: Double,
     val productType: String,
+    val purchasePrie: Double,
 )
