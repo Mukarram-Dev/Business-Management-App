@@ -3,6 +3,7 @@ package com.mukarram.businessmanagementapp.Presentaion.product_sales
 import CustomTypography
 import LightColors
 import android.app.DatePickerDialog
+import android.util.Log
 
 import android.widget.DatePicker
 import androidx.compose.foundation.BorderStroke
@@ -28,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -38,13 +40,7 @@ import com.mukarram.businessmanagementapp.Presentaion.product_stock.StockViewMod
 import com.mukarram.businessmanagementapp.R
 import java.util.*
 
-data class ProductSales(
-    val productName: String,
-    val CustomerName: String,
-    val productSalesQunatity: Int,
-    val saleDate: String,
-    val amountProduct: Int,
-)
+
 
 
 @Composable
@@ -55,12 +51,18 @@ fun ProductSalesScreen(
     stockViewModel: StockViewModel = hiltViewModel(),
 ) {
     val productState = stockViewModel.state.value
+
+
+
     LaunchedEffect(Unit) {
+
         viewModel.fetchSaleDetails()
     }
 
     // Collect the StateFlow using collectAsState
     val saleDetailState by viewModel.saleDetailState.collectAsState()
+
+
 
     Scaffold(
         topBar = { CustomAppBar(title = "Product Sales", navController) },
@@ -75,7 +77,7 @@ fun ProductSalesScreen(
 
 @Composable
 fun ProductSalesContent(saleDetailState: List<SaleDetailsModel>, productState: StockState) {
-    val productDetailList = remember { mutableStateListOf<ProductSales>() }
+
 
 
     val selectedProduct = remember { mutableStateOf("") }
@@ -347,7 +349,7 @@ fun SalesList(
     selectedProduct: String,
     selectedDate: String
 ) {
-    Spacer(modifier = Modifier.height(20.dp))
+    Spacer(modifier = Modifier.height(10.dp))
 
 
     Row(
@@ -358,25 +360,26 @@ fun SalesList(
     ) {
         Text(
             text = "Product",
-            style = CustomTypography.subtitle2.copy(color = Color.Black),
+            style = CustomTypography.subtitle2.copy(color = Color.Black, fontSize = 10.sp),
             modifier = Modifier.weight(1f)
         )
 
         Text(
             text = "Sale Qty",
-            style = CustomTypography.subtitle2.copy(color = Color.Black),
-            modifier = Modifier.weight(0.9f)
+            style = CustomTypography.subtitle2.copy(color = Color.Black, fontSize = 10.sp),
+            modifier = Modifier.weight(0.8f)
         )
 
         Text(
             text = "Price",
-            style = CustomTypography.subtitle2.copy(color = Color.Black),
-            modifier = Modifier.weight(0.7f)
+            style = CustomTypography.subtitle2.copy(color = Color.Black, fontSize = 10.sp),
+            modifier = Modifier.weight(0.6f)
         )
 
         Text(
             text = "Customer",
-            style = CustomTypography.subtitle2.copy(color = Color.Black),
+            style = CustomTypography.subtitle2.copy(color = Color.Black, fontSize = 10.sp),
+            modifier = Modifier.weight(0.7f)
 
             )
     }
@@ -407,7 +410,7 @@ fun SalesList(
 
                     Divider()
 
-                    Spacer(modifier = Modifier.height(15.dp))
+                    Spacer(modifier = Modifier.height(5.dp))
 
                 }
 
@@ -421,8 +424,7 @@ fun SalesList(
 fun ProductTable(sale: SaleDetailsModel) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(5.dp),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
 
@@ -430,7 +432,7 @@ fun ProductTable(sale: SaleDetailsModel) {
         Column(horizontalAlignment = Alignment.Start,modifier = Modifier.width(100.dp)) {
             Text(
                 text = sale.productName,
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 10.sp),
                 textAlign = TextAlign.Start,
 
             )
@@ -439,30 +441,30 @@ fun ProductTable(sale: SaleDetailsModel) {
 
             Text(
                 text = sale.purchaseDate,
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 10.sp),
                 textAlign = TextAlign.Start,
             )
         }
 
         Column {
             Text(
-                text = " ${sale.saleQty} ${sale.productType}",
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
-                modifier = Modifier.width(50.dp)
+                text = "${sale.saleQty} ${sale.productType}",
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 10.sp),
+                modifier = Modifier.width(80.dp)
             )
         }
 
         Column {
             Text(
-                text = " ${sale.totalBill}",
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                text = "${sale.saleQty * sale.salePrice}",
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 10.sp),
                 modifier = Modifier.width(60.dp)
             )
         }
         Column {
             Text(
                 text = sale.customerName,
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 10.sp),
                 modifier = Modifier.width(80.dp)
             )
         }

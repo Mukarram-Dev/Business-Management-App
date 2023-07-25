@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseBill.BillUseCase
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseCustomer.CustomerUseCases
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProduct.ProductUseCase
@@ -12,10 +13,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-//...
 @HiltViewModel
 class BillScreenViewModel @Inject constructor(
     private val customerUseCases: CustomerUseCases,
@@ -24,6 +25,7 @@ class BillScreenViewModel @Inject constructor(
     private val productBillUseCase: ProductBillUseCase,
 ) : ViewModel() {
 
+    // Use MutableStateFlow for billDetailsState
     private val _billDetailsState = MutableStateFlow(emptyList<ViewBillDetails>())
     val billDetailsState: StateFlow<List<ViewBillDetails>> = _billDetailsState
 
@@ -35,34 +37,35 @@ class BillScreenViewModel @Inject constructor(
     }
 
     // Function to fetch bill details and update the StateFlow
-    suspend fun fetchBillDetails() {
-        val bills = withContext(Dispatchers.IO) { billUseCase.getAllBills.execute() }
+    fun fetchBillDetails() {
+        viewModelScope.launch {
+            val bills = withContext(Dispatchers.IO) { billUseCase.getAllBills.execute() }
 
+            val billDetailsList = mutableListOf<ViewBillDetails>()
 
-        val billDetailsList = mutableListOf<ViewBillDetails>()
+            bills.collect { billList ->
+                Log.e("Bill Count", "${billList.size}")
+                billList.forEach { bill ->
+                    val customer = withContext(Dispatchers.IO) { customerUseCases.getCustomerById(bill.customerId) }
+                    val productBill = withContext(Dispatchers.IO) {
+                        bill.id?.let { productBillUseCase.getProductBillById(it) }
+                    }
 
-        bills.collect { billList ->
-            billList.forEach { bill ->
-                val customer =
-                    withContext(Dispatchers.IO) { customerUseCases.getCustomerById(bill.customerId) }
-                val productBill =
-                    withContext(Dispatchers.IO) { bill.id?.let { productBillUseCase.getProductBillById(it) } }
-
-                if (customer != null) {
-                    billDetailsList.add(
-                        ViewBillDetails(
-                            customerName = customer.name,
-                            purchaseDate = bill.date,
-                            totalBill = productBill?.totalBill ?: 0.0,
-                            currentBillId=bill.id
+                    if (customer != null) {
+                        billDetailsList.add(
+                            ViewBillDetails(
+                                customerName = customer.name,
+                                purchaseDate = bill.date,
+                                totalBill = productBill?.totalBill ?: 0.0,
+                                currentBillId = bill.id
+                            )
                         )
-                    )
-                    Log.e("billId",bill.id.toString())
+                    }
                 }
-            }
 
-            // Update the StateFlow with the collected bill details list
-            _billDetailsState.value = billDetailsList
+                // Update the StateFlow with the collected bill details list
+                _billDetailsState.value = billDetailsList
+            }
         }
     }
 }

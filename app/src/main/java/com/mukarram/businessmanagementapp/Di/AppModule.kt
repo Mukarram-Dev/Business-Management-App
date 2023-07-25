@@ -11,9 +11,7 @@ import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseCustomer.C
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseCustomer.GetAllCustomers
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseCustomer.GetCustomerById
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProduct.*
-import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductBill.AddProductBill
-import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductBill.GetProductBillById
-import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductBill.ProductBillUseCase
+import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductBill.*
 import com.mukarram.businessmanagementapp.DatabaseApp.repositories.*
 import dagger.Module
 import dagger.Provides
@@ -99,7 +97,9 @@ object AppModule {
     fun provideProductBillUseCase(repository: ProductBillRepository): ProductBillUseCase {
         return ProductBillUseCase(
             addProductBill = AddProductBill(repository),
-            getProductBillById = GetProductBillById(repository)
+            getProductBillById = GetProductBillById(repository),
+            getProductEntriesForBill = GetProductEntriesForBill(repository),
+            getAllProductBills = GetAllProductBills(repository)
 
             )
     }

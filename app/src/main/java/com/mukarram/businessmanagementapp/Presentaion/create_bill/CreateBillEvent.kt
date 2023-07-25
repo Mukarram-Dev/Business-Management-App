@@ -8,14 +8,7 @@ sealed class CreateBillEvent {
     data class EnteredCustPhone(val value: String) : CreateBillEvent()
     data class EnteredCustAddress(val value: String) : CreateBillEvent()
 
-
-
     data class SelectedBillDate(val value: String) : CreateBillEvent()
-
-    data class EnteredProdQty(val value: String) : CreateBillEvent()
-    data class EnteredSalePrice(val value: String) : CreateBillEvent()
-    data class SelectedProduct(val value: String) : CreateBillEvent()
-    data class SelectedProductId(val value: String) : CreateBillEvent()
 
     data class TotalBill(val value: String) : CreateBillEvent()
 

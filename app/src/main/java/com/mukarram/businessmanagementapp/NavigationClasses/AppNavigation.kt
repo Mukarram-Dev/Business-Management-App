@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.mukarram.businessmanagementapp.Presentaion.*
+import com.mukarram.businessmanagementapp.Presentaion.create_bill.ProductSelectionScreen
 import com.mukarram.businessmanagementapp.Presentaion.home_screen.HomeScreen
 import com.mukarram.businessmanagementapp.Presentaion.product_sales.ProductSalesScreen
 import com.mukarram.businessmanagementapp.Presentaion.product_stock.ProductListScreen
@@ -52,5 +53,14 @@ fun AppNavGraph() {
             // Call the composable function for the BillDetailScreen and pass the billId argument
             BillDetailScreen(navController, billId)
         }
+
+
+        composable(Screen.SelectionScreen.route) {
+            ProductSelectionScreen(navController)
+        }
+
+
+
+
     }
 }

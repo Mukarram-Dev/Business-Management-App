@@ -2,10 +2,12 @@ package com.mukarram.businessmanagementapp.Presentaion
 
 import CustomTypography
 import LightColors
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,9 +19,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.mukarram.businessmanagementapp.CustomAppWidgets.AppCustomButton
 import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomAppBar
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Product
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductEntry
 import com.mukarram.businessmanagementapp.Presentaion.bill_detail.BillDetailViewModel
 import com.mukarram.businessmanagementapp.Presentaion.bill_detail.GetBillDetails
 import com.mukarram.businessmanagementapp.Presentaion.bill_detail.utils.SharePdfFile
+import com.mukarram.businessmanagementapp.Presentaion.product_stock.StockViewModel
 
 
 @Composable
@@ -28,10 +33,11 @@ fun BillDetailScreen(
     billId: Long,
     viewModel: BillDetailViewModel = hiltViewModel(),
 
-) {
-    // Get the bill ID from the arguments passed by the previous screen
+
+    ) {
 
 
+    val billDetailsState by viewModel.billDetailsState.collectAsState()
     // Fetch bill details using LaunchedEffect and the bill ID
     LaunchedEffect(billId) {
 
@@ -39,7 +45,7 @@ fun BillDetailScreen(
     }
 
     // Fetch bill details using LaunchedEffect and the bill ID
-    val billDetailsState by viewModel.billDetailsState.collectAsState()
+
 
 
 
@@ -75,15 +81,15 @@ fun BillDetailScreen(
                 Column(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(horizontal = 16.dp, vertical = 24.dp)
+                        .padding(horizontal = 10.dp, vertical = 24.dp)
                 ) {
                     BillDetailHeader(billDetailsState)
 
-                    Divider()
+
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    BillTable(billDetailsState)
+                    BillTable(billDetailsState,viewModel)
                 }
 
                 Box(
@@ -141,7 +147,7 @@ fun BottomBar(
 
 
 @Composable
-fun BillTable(bill: GetBillDetails?) {
+fun BillTable(bill: GetBillDetails?, viewModel: BillDetailViewModel) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -155,7 +161,7 @@ fun BillTable(bill: GetBillDetails?) {
         Text(
             text = "Qty",
             style = CustomTypography.subtitle2.copy(color = Color.Black),
-            modifier = Modifier.width(80.dp)
+            modifier = Modifier.width(100.dp)
         )
 
         Text(
@@ -167,22 +173,30 @@ fun BillTable(bill: GetBillDetails?) {
         Text(
             text = "Amount",
             style = CustomTypography.subtitle2.copy(color = Color.Black),
-            modifier = Modifier.width(80.dp)
+            modifier = Modifier.width(70.dp)
         )
     }
     Divider(thickness = 2.dp)
 
-    //Lazy Column for items
+
 
     Spacer(modifier = Modifier.height(5.dp))
 
-    LazyColumn {
-        items(listOfNotNull(bill).size) { item ->
-            BillItem(item,bill)
-            Divider()
-            Spacer(modifier = Modifier.height(10.dp))
+
+    // Check if the data is available
+    bill?.let { billDetails ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Display customer details and other bill-related information here
+
+            // Display the list of product entries using the BillItem composable
+            BillItem(billDetails.productEntries,billDetails.products)
         }
     }
+
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -243,35 +257,55 @@ fun BillDetailHeader(bill: GetBillDetails?) {
 }
 
 @Composable
-fun BillItem(index: Int, bill: GetBillDetails?) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = bill?.productName?:"prod",
-            style = CustomTypography.subtitle1.copy(color = LightColors.onSecondary),
-            modifier = Modifier.weight(1f)
-        )
+fun BillItem(productEntries: List<ProductEntry>, products: List<Product?>) {
+
+
+    LazyColumn {
+        itemsIndexed(productEntries) {index, productEntry ->
 
 
 
-        Text(
-            text = "${bill?.saleQty}",
-            style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
-            modifier = Modifier.width(80.dp)
-        )
+            val toatalBill=productEntry.saleQuantity.times(productEntry.salePrice)
 
-        Text(
-            text = "${bill?.salePrice}",
-            style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
-            modifier = Modifier.width(80.dp)
-        )
 
-        Text(
-            text = "Rs. ${bill?.saleQty?.times((bill.salePrice))}",
-            style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
-            modifier = Modifier.width(80.dp)
-        )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+
+            ) {
+                products[index]?.name?.let {
+                    Text(
+                        text = it,
+                        style = CustomTypography.subtitle1.copy(color = LightColors.onSecondary),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Text(
+                    text = "${productEntry.saleQuantity}",
+                    style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                    modifier = Modifier.width(100.dp)
+                )
+
+                Text(
+                    text = "${productEntry.salePrice}",
+                    style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                    modifier = Modifier.width(90.dp)
+                )
+
+                Text(
+                    text = toatalBill.toString(),
+                    style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                    modifier = Modifier.width(60.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            Divider()
+        }
     }
 }
+
+
+
+
+

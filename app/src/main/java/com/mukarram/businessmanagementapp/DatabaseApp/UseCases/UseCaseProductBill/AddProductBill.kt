@@ -1,5 +1,6 @@
 package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductBill
 
+
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductBill
 
 
@@ -8,7 +9,9 @@ import com.mukarram.businessmanagementapp.DatabaseApp.repositories.ProductBillRe
 data class AddProductBill(
     private val productBillRepository: ProductBillRepository
 ) {
-    suspend operator fun invoke(productBill: ProductBill){
-        return productBillRepository.insertProductBill(productBill)
+
+
+    suspend operator fun invoke(productBill: ProductBill) {
+        productBillRepository.insertProductBill(productBill)
     }
 }

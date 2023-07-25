@@ -26,7 +26,7 @@ fun CustomTextField(
     hint: String,
     modifier: Modifier,
     keyboardOptions: KeyboardOptions,
-    imageVector: ImageVector,
+    imageVector: ImageVector?,
     onValueChange: (String) -> Unit,
     contentDescription: String,
 
@@ -39,16 +39,13 @@ fun CustomTextField(
         value = label,
         shape = RoundedCornerShape(20.dp),
         singleLine = true,
-        onValueChange = onValueChange ,
-
+        onValueChange = onValueChange,
 
 
         label = {
-
-                Text(
-                    text = hint, style = CustomTypography.subtitle2
-                        .copy(color = LightColors.primary.copy(alpha = 0.7f))
-                )
+            Text(text = hint, style = CustomTypography.subtitle2
+                    .copy(color = LightColors.primary.copy(alpha = 0.7f))
+            )
 
 
         },
@@ -56,11 +53,13 @@ fun CustomTextField(
             .copy(color = LightColors.primary.copy(alpha = 0.7f)),
         keyboardOptions = keyboardOptions,
         leadingIcon = {
-            Icon(
-                imageVector = imageVector,
-                contentDescription = contentDescription,
-                tint = LightColors.primary
-            )
+            if (imageVector != null) {
+                Icon(
+                    imageVector = imageVector,
+                    contentDescription = contentDescription,
+                    tint = LightColors.primary
+                )
+            }
         },
         modifier = modifier
             .padding(10.dp)

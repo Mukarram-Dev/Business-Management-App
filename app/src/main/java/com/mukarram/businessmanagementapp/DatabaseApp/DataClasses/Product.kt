@@ -22,7 +22,7 @@ data class Product(
     @ColumnInfo(name = "product_type")
     val product_type: String,
     @ColumnInfo(name = "product_remaining")
-    val product_remaining: Int
+    var product_remaining: Int
 
 
 )

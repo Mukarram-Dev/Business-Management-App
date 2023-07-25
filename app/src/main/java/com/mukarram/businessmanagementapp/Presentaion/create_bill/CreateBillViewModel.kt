@@ -1,9 +1,8 @@
 package com.mukarram.businessmanagementapp.Presentaion.create_bill
 
-import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductBill
 import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductBill
+import androidx.compose.runtime.*
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,8 +24,8 @@ class CreateBillViewModel @Inject constructor(
     private val customerUseCases: CustomerUseCases,
     private val productBillUseCase: ProductBillUseCase,
     private val productUseCase: ProductUseCase,
-    private val savedStateHandle: SavedStateHandle
-) : ViewModel() {
+    private val savedStateHandle: SavedStateHandle,
+) : ViewModel(), (Product, Int, Double) -> Unit {
 
     // Customer fields
     private val _customerName = mutableStateOf(CreateBillFieldStates(hint = "Customer Name..."))
@@ -39,33 +38,29 @@ class CreateBillViewModel @Inject constructor(
     private val _customerPhone = mutableStateOf(CreateBillFieldStates(hint = "Customer Phone..."))
     val customerPhone: State<CreateBillFieldStates> = _customerPhone
 
-    // Product fields
-    private val _productQty = mutableStateOf(CreateBillFieldStates(hint = "ProductQty."))
-    val productQty: State<CreateBillFieldStates> = _productQty
-
-    private val _salePrice = mutableStateOf(CreateBillFieldStates(hint = "Sale Price..."))
-    val salePrice: State<CreateBillFieldStates> = _salePrice
 
     // Other fields
     val billDate = mutableStateOf("")
-        //product details
-    var selectedProduct = mutableStateOf("")
-    var selectedProductId = mutableStateOf("")
 
+    val profitState: MutableState<Double?> = mutableStateOf(null)
+    private val _eventFlow = MutableSharedFlow<BillUiEvent>()
+
+    val eventFlow = _eventFlow.asSharedFlow()
+    private var currentBillId: Long? = null
+
+    private var currentCustomerId: Long? = null
+
+    private val selectedProducts = ProductEntryManager.productEntries
 
 
 
     val totalBill = mutableStateOf(0.0)
 
-    private val _eventFlow = MutableSharedFlow<BillUiEvent>()
-    val eventFlow = _eventFlow.asSharedFlow()
 
 
-    private var currentBillId: Long? = null
-    private var currentProductSaleId: Long? = null
-    private var currentCustomerId: Long? = null
 
 
+    // Function to save the bill and associated product entries
     fun saveBillData() {
         viewModelScope.launch {
             try {
@@ -86,27 +81,54 @@ class CreateBillViewModel @Inject constructor(
                 )
                 currentBillId = billUseCase.addBill(bill)
 
-                // Save the product bill with the appropriate bill and product IDs
-                val productId = selectedProductId.value.toLong()
-                val productBill = ProductBill(
-                    productId = productId,
-                    billId = currentBillId,
-                    salePrice = salePrice.value.text?.toDouble(),
-                    saleQuantity = productQty.value.text?.toInt(),
-                    totalBill = totalBill.value
-                )
-                productBillUseCase.addProductBill(productBill)
+                // Save the product entries with the associated billId
+
+                selectedProducts.forEach { productEntry ->
+                    calculateTotalBill(selectedProducts, totalBill)
+                    val productBill = ProductBill(
+                        billId = currentBillId ?: 0L,
+                        totalBill = totalBill.value,
+                        productEntries = listOf(productEntry)
+                    )
+                    productBillUseCase.addProductBill(productBill)
+                }
+
+
+
+                selectedProducts.forEach { productEntry ->
+
+                    updateProductDetails(
+                        productEntry.productId,
+                        productEntry.saleQuantity,
+                        productEntry.salePrice,
+
+                        )
+                }
+                ProductEntryManager.clearProductEntry()
+
 
                 // Emit a success event
                 _eventFlow.emit(BillUiEvent.ShowSnackbar("Bill saved successfully"))
-
-                updateProductDetails(selectedProductId.value.toLong(),productQty.value.text?.toInt()!!)
             } catch (e: Exception) {
                 // Handle any exceptions and emit an error event if needed
                 _eventFlow.emit(BillUiEvent.ShowSnackbar("Error saving bill"))
-                Log.e("database Error", e.message.toString())
             }
         }
+    }
+
+    private fun calculateTotalBill(
+        selectedProducts: List<ProductEntry>,
+        totalBill: MutableState<Double>,
+    ) {
+        if (selectedProducts.isNotEmpty()) {
+            selectedProducts.forEachIndexed { index, productEntry ->
+
+                totalBill.value += selectedProducts[index].saleQuantity * selectedProducts[index].salePrice
+
+            }
+
+        }
+
     }
 
 
@@ -114,6 +136,9 @@ class CreateBillViewModel @Inject constructor(
         // Load customer and product details from SavedStateHandle if available
         loadCustomerData()
         loadBillData()
+
+
+
 
 
 
@@ -126,16 +151,6 @@ class CreateBillViewModel @Inject constructor(
                         currentBillId = bill.id
                         billDate.value = bill.date
                         currentCustomerId = bill.customerId
-
-                        productBillUseCase.getProductBillById(billId)
-                            ?.also { productBill: ProductBill ->
-                                currentProductSaleId = selectedProductId.value.toLong()
-                                _productQty.value =
-                                    _productQty.value.copy(text = productBill.saleQuantity.toString())
-                                _salePrice.value =
-                                    _salePrice.value.copy(text = productBill.salePrice.toString())
-                                selectedProductId.value = productBill.productId.toString()
-                            }
 
 
                     }
@@ -159,14 +174,7 @@ class CreateBillViewModel @Inject constructor(
                     billDate.value = bill.date
                     currentCustomerId = bill.customerId
 
-                    productBillUseCase.getProductBillById(billId)?.also { productBill: ProductBill ->
-                        currentProductSaleId = selectedProductId.value.toLong()
-                        _productQty.value =
-                            _productQty.value.copy(text = productBill.saleQuantity.toString())
-                        _salePrice.value =
-                            _salePrice.value.copy(text = productBill.salePrice.toString())
-                        selectedProductId.value = productBill.productId.toString()
-                    }
+
                 }
             } else {
                 currentBillId = null
@@ -203,21 +211,11 @@ class CreateBillViewModel @Inject constructor(
             is CreateBillEvent.EnteredCustPhone -> {
                 _customerPhone.value = _customerPhone.value.copy(text = event.value)
             }
-            is CreateBillEvent.EnteredSalePrice -> {
-                _salePrice.value = _salePrice.value.copy(text = event.value)
-            }
             is CreateBillEvent.SelectedBillDate -> {
                 billDate.value = event.value
             }
-            is CreateBillEvent.EnteredProdQty -> {
-                _productQty.value = _productQty.value.copy(text = event.value)
-            }
-            is CreateBillEvent.SelectedProduct -> {
-                selectedProduct.value = event.value
-            }
-            is CreateBillEvent.SelectedProductId -> {
-                selectedProductId.value = event.value
-            }
+
+
             is CreateBillEvent.TotalBill -> {
                 totalBill.value = event.value.toDouble()
             }
@@ -226,33 +224,56 @@ class CreateBillViewModel @Inject constructor(
     }
 
 
-    private suspend fun updateProductDetails(productId: Long, newSales: Int) {
-        val product = productUseCase.getProductById(productId)
-        product?.let {
-            val totalProduct=product.quantity
-            val remaining= mutableStateOf<Int>(0)
-            if(totalProduct>newSales && totalProduct!=0 && product.product_remaining!=0){
-                remaining.value=product.product_remaining-newSales
-            }
-            else {
-                _eventFlow.emit(BillUiEvent.ShowSnackbar("greater than existing"))
-            }
-            val addSales=product.saleQty + newSales
+    private suspend fun updateProductDetails(
+        productId: Long,
+        newSales: Int,
+        salePrice: Double,
 
-            val updatedProduct = it.copy(
-               product_remaining = remaining.value,
-               saleQty = addSales,
+        ) {
 
-            )
-            productUseCase.updateProduct(updatedProduct)
+        viewModelScope.launch {
+            val product = productUseCase.getProductById(productId)
+            product?.let {
+
+                val totalProduct = product.quantity
+                val remaining = mutableStateOf<Int>(0)
+                val addSales = mutableStateOf<Int>(0)
+                if (totalProduct > newSales && totalProduct != 0 && product.product_remaining != 0) {
+                    remaining.value = product.product_remaining - newSales
+                    addSales.value = product.saleQty + newSales
+
+
+                } else {
+                    _eventFlow.emit(BillUiEvent.ShowSnackbar("greater than existing"))
+                }
+
+
+
+                val updatedProduct = it.copy(
+                    product_remaining = remaining.value,
+                    saleQty = addSales.value,
+
+                    )
+                productUseCase.updateProduct(updatedProduct)
+            }
         }
+
+
     }
 
-
-
-
-
-
+    suspend fun getAllEntries(selectedProducts: List<ProductEntry>): List<SelectedListDetail> {
+        return selectedProducts.map { productEntry ->
+            val product = productUseCase.getProductById(productEntry.productId)
+            product?.let {
+                SelectedListDetail(
+                    prodName = product.name,
+                    saleQty = productEntry.saleQuantity,
+                    salePrice = productEntry.salePrice,
+                    total = productEntry.saleQuantity * productEntry.salePrice
+                )
+            }
+        }.filterNotNull() // Filter out null values if any
+    }
 
 
     sealed class BillUiEvent {
@@ -261,5 +282,14 @@ class CreateBillViewModel @Inject constructor(
     }
 
 
+    override fun invoke(p1: Product, p2: Int, p3: Double) {
+        TODO("Not yet implemented")
+    }
 
 }
+data class SelectedListDetail(
+    val prodName : String,
+    val saleQty : Int,
+    val salePrice : Double,
+    val total   : Double
+)

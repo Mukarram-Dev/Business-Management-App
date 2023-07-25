@@ -6,6 +6,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.mukarram.businessmanagementapp.DatabaseApp.ConvertersClass.Converter
 
 import com.mukarram.businessmanagementapp.DatabaseApp.DaoFiles.BillDao
 import com.mukarram.businessmanagementapp.DatabaseApp.DaoFiles.CustomerDao
@@ -16,6 +18,7 @@ import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Customer
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Product
 
 @Database(entities = [Product::class, Bill::class, Customer::class, ProductBill::class], version = 1, exportSchema = false)
+@TypeConverters(Converter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
     abstract fun billDao(): BillDao

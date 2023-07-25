@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -30,6 +31,9 @@ class StockViewModel @Inject constructor(
     init {
         getProducts(ProductOrder.Date(OrderType.Descending))
     }
+
+
+
 
     fun onEvent(event: StockEvent) {
         when (event) {

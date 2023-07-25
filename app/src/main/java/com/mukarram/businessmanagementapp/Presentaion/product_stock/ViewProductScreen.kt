@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomAppBar
@@ -124,25 +125,25 @@ fun ProductListContent(state: StockState) {
         ) {
             Text(
                 text = "Product",
-                style = CustomTypography.subtitle2.copy(color = Color.Black),
+                style = CustomTypography.subtitle2.copy(color = Color.Black, fontSize = 12.sp),
                 modifier = Modifier.weight(1f)
             )
 
             Text(
                 text = "Total Qty",
-                style = CustomTypography.subtitle2.copy(color = Color.Black),
+                style = CustomTypography.subtitle2.copy(color = Color.Black, fontSize = 12.sp),
                 modifier = Modifier.weight(1.0f)
             )
 
             Text(
                 text = "Sale",
-                style = CustomTypography.subtitle2.copy(color = Color.Black),
+                style = CustomTypography.subtitle2.copy(color = Color.Black, fontSize = 12.sp),
                 modifier = Modifier.weight(0.6f)
             )
 
             Text(
                 text = "Remaining",
-                style = CustomTypography.subtitle2.copy(color = Color.Black),
+                style = CustomTypography.subtitle2.copy(color = Color.Black, fontSize = 12.sp),
 
             )
         }
@@ -188,14 +189,14 @@ fun ProductItem(index: Int, product: List<Product>) {
             Text(
                 textAlign = TextAlign.Start,
                 text = " ${product[index].name}",
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary)
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 12.sp),
 
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 textAlign = TextAlign.Start,
                 text = " Rs ${product[index].price}",
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary)
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 12.sp),
 
             )
         }
@@ -205,8 +206,8 @@ fun ProductItem(index: Int, product: List<Product>) {
         ) {
             Text(
                 text = " ${product[index].quantity} ${product[index].product_type}",
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
-                modifier = Modifier.width(80.dp)
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 12.sp),
+                modifier = Modifier.width(100.dp)
             )
         }
 
@@ -215,8 +216,8 @@ fun ProductItem(index: Int, product: List<Product>) {
         ) {
             Text(
                 text = " ${product[index].saleQty}",
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
-                modifier = Modifier.width(90.dp)
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 12.sp),
+                modifier = Modifier.width(75.dp)
             )
         }
 
@@ -227,7 +228,7 @@ fun ProductItem(index: Int, product: List<Product>) {
         ) {
             Text(
                 text = " ${product[index].product_remaining}",
-                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary),
+                style = CustomTypography.subtitle2.copy(color = LightColors.onSecondary, fontSize = 12.sp),
                 modifier = Modifier.width(30.dp)
             )
         }

@@ -2,6 +2,7 @@ package com.mukarram.businessmanagementapp.Presentaion.product_sales
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductEntry
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseBill.BillUseCase
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseCustomer.CustomerUseCases
 import com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProduct.ProductUseCase
@@ -26,39 +27,51 @@ class ProductSaleViewModel @Inject constructor(
     suspend fun fetchSaleDetails() {
         val bills = withContext(Dispatchers.IO) { billUseCase.getAllBills.execute() }
 
-
         val saleDetailsList = mutableListOf<SaleDetailsModel>()
 
         bills.collect { billList ->
             billList.forEach { bill ->
-                val customer =
-                    withContext(Dispatchers.IO) { customerUseCases.getCustomerById(bill.customerId) }
-                val productBill =withContext(Dispatchers.IO) { bill.id?.let { productBillUseCase.getProductBillById(it) } }
-                val products= withContext(Dispatchers.IO){productUseCase.getProductById(productBill?.productId!!)}
+                val customer = withContext(Dispatchers.IO) { customerUseCases.getCustomerById(bill.customerId) }
+                val productBill = withContext(Dispatchers.IO) { bill.id?.let { productBillUseCase.getProductBillById(it) } }
+                val entriesList = mutableListOf<ProductEntry>() // Create a new list for each iteration
 
-                if (customer != null && products!=null) {
-                    saleDetailsList.add(
-                        SaleDetailsModel(
-                            customerName = customer.name,
-                            totalBill = productBill?.totalBill ?: 0.0,
-                            purchaseDate = bill.date,
-                            productName = products.name,
-                            purchasePrie=products.price,
-                            productType=products.product_type,
-                            saleQty = productBill?.saleQuantity?:0,
-                            salePrice = productBill?.salePrice?:0.0
-
-                        )
+                val entries = productBill?.productEntries?.map { entry ->
+                    ProductEntry(
+                        productId = entry.productId,
+                        salePrice = entry.salePrice,
+                        saleQuantity = entry.saleQuantity
                     )
-
                 }
+
+                if (entries != null) {
+                    entriesList.addAll(entries)
+                }
+
+                entriesList.forEach {
+                    val products = withContext(Dispatchers.IO) { productUseCase.getProductById(it.productId) }
+                    Log.e("product get:", products?.name ?: "null")
+                    if (customer != null && products != null) {
+                        saleDetailsList.add(
+                            SaleDetailsModel(
+                                customerName = customer.name,
+                                totalBill = productBill?.totalBill ?: 0.0,
+                                purchaseDate = bill.date,
+                                productName = products.name,
+                                productType = products.product_type,
+                                saleQty = it.saleQuantity,
+                                salePrice = it.salePrice
+                            )
+                        )
+                    }
+                }
+
             }
-
-            // Update the StateFlow with the collected bill details list
             _SaleDetailsState.value = saleDetailsList
-
-
         }
+
+
+
     }
+
 
 }

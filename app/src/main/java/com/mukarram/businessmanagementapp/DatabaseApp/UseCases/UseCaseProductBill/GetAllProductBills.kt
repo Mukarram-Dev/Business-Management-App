@@ -1,13 +1,15 @@
 package com.mukarram.businessmanagementapp.DatabaseApp.UseCases.UseCaseProductBill
 
-
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.Bill
 import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductBill
 import com.mukarram.businessmanagementapp.DatabaseApp.repositories.ProductBillRepository
+import kotlinx.coroutines.flow.Flow
 
-data class GetProductBillById(
+data class GetAllProductBills(
     private val productBillRepository: ProductBillRepository
 ) {
-    suspend operator fun invoke(billId: Long): ProductBill? {
-        return productBillRepository.getProductBillById(billId)
+    suspend fun execute(): Flow<List<ProductBill>> {
+        return productBillRepository.getProductBill()
     }
+
 }

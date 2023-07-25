@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -29,8 +30,7 @@ import androidx.navigation.NavHostController
 import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomAppBar
 import com.mukarram.businessmanagementapp.Presentaion.product_sales.DatePickers
 import com.mukarram.businessmanagementapp.R
-
-
+import java.util.*
 
 
 @Composable
@@ -38,12 +38,15 @@ fun BillReportScreen(
     navController: NavHostController,
     viewModel: BillScreenViewModel = hiltViewModel(),
 ) {
+
     LaunchedEffect(Unit) {
         viewModel.fetchBillDetails()
     }
 
     // Collect the StateFlow using collectAsState
     val billDetailsState by viewModel.billDetailsState.collectAsState()
+
+
 
     Scaffold(
         topBar = { CustomAppBar(title = "Bill Book", navController) },
@@ -106,9 +109,6 @@ fun BillReportContent(
 
     val selectedCustomer = remember { mutableStateOf("") }
     val selectedDate = remember { mutableStateOf("") }
-    val searchProduct = remember { mutableStateOf("") }
-
-    Log.e("list of bills", billDetailsState.size.toString())
 
 
     //search text field
@@ -284,7 +284,10 @@ fun BillListView(
 
     val filteredBill = billDetailsState.filter { bill ->
 
-        (selectedBill.isEmpty() || bill.customerName == selectedBill) &&
+        (selectedBill.isEmpty() ||
+                bill.customerName.lowercase(Locale.getDefault()) == selectedBill.lowercase(
+            Locale.getDefault()))
+                &&
                 (selectedDate.isEmpty() || bill.purchaseDate == selectedDate)
 
     }
@@ -302,11 +305,10 @@ fun BillListView(
 
             items(filteredBill.size) { bill -> // Pass each individual ViewBillDetails item
 
-                if (filteredBill.isEmpty()){
-                    Text("no data found/inserted",style=CustomTypography.h2)
-                }
-                else {
-                    BillBox(filteredBill, navController, bill,viewModel)
+                if (filteredBill.isEmpty()) {
+                    Text("no data found/inserted", style = CustomTypography.h2)
+                } else {
+                    BillBox(filteredBill, navController, bill, viewModel)
                     Spacer(modifier = Modifier.height(5.dp))
                 }
 
@@ -322,7 +324,7 @@ fun BillBox(
     bill: List<ViewBillDetails>,
     navController: NavHostController,
     billIndex: Int,
-    viewModel: BillScreenViewModel
+    viewModel: BillScreenViewModel,
 ) {
     Box(
         modifier = Modifier

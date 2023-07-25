@@ -26,10 +26,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.mukarram.businessmanagementapp.CustomAppWidgets.CustomGridItems
 import com.mukarram.businessmanagementapp.NavigationClasses.Screen
-import com.mukarram.businessmanagementapp.Presentaion.product_sales.ProductSaleViewModel
-import com.mukarram.businessmanagementapp.Presentaion.product_sales.SaleDetailsModel
 import com.mukarram.businessmanagementapp.R
 import kotlin.math.absoluteValue
+
+import androidx.compose.runtime.collectAsState
+
+
 
 
 val gridItemToScreenMap = mapOf(
@@ -42,14 +44,21 @@ val gridItemToScreenMap = mapOf(
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    viewModel: ProductSaleViewModel = hiltViewModel(),
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    // Fetch sale details and calculate profit and loss when saleDetailState changes
-    LaunchedEffect(Unit) {
-        viewModel.fetchSaleDetails()
+
+
+
+    // Use LaunchedEffect to trigger the refresh
+    LaunchedEffect(viewModel.refreshTrigger) {
+        viewModel.getBills()
     }
 
-    val saleDetailState by viewModel.saleDetailState.collectAsState()
+
+    // Observe the profit value using collectAsState
+    val profit: Double? by viewModel.profitState.collectAsState()
+    val loss: Double? by viewModel.lossState.collectAsState()
+
 
 
 
@@ -74,7 +83,7 @@ fun HomeScreen(
 
 
             ) {
-                ProfitLossBox(saleDetailState)
+                ProfitLossBox(profit,loss)
             }
 
 
@@ -206,17 +215,18 @@ fun CardItem(customGridItems: CustomGridItems, navController: NavHostController)
 
 @Composable
 fun ProfitLossBox(
-    saleDetailState: List<SaleDetailsModel>,
+
+    profit: Double?,
+    loss: Double?,
+
 
     ) {
 
 
-    val profit = remember { mutableStateOf<Double?>(null) }
-    val loss = remember { mutableStateOf<Double?>(null) }
 
-    LaunchedEffect(saleDetailState) {
-        calculateProfit(saleDetailState, profit, loss)
-    }
+
+
+
 
     Surface(
 
@@ -244,7 +254,7 @@ fun ProfitLossBox(
 
             Column {
                 Text(
-                    text = "Rs.${profit.value?.absoluteValue}",
+                    text = "Rs.${profit?.absoluteValue?:0.0}",
                     style = CustomTypography.h2.copy(color = Color.Green)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -264,7 +274,7 @@ fun ProfitLossBox(
 
             Column {
                 Text(
-                    text = "Rs.${loss.value?.absoluteValue}",
+                    text = "Rs.${loss?.absoluteValue?:0.0}",
                     style = CustomTypography.h2.copy(color = Color.Red)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -277,44 +287,6 @@ fun ProfitLossBox(
         }
     }
 }
-
-fun calculateProfit(
-    listSale: List<SaleDetailsModel>,
-    profit: MutableState<Double?>,
-    loss: MutableState<Double?>,
-) {
-    if (listSale.isNotEmpty()) {
-        var totalProfit = 0.0
-        var totalLoss = 0.0
-
-        listSale.forEach { sale ->
-            val salePrice = sale.salePrice * sale.saleQty
-            val purchasePrice = sale.purchasePrie * sale.saleQty
-
-            Log.e("salePrice","$salePrice")
-
-            // Calculate the profit/loss for the current product sale
-            val productProfit = salePrice - purchasePrice
-
-            // Add the product's profit/loss to the total profit/loss
-            if (productProfit >= 0) {
-                totalProfit += productProfit
-            } else {
-                totalLoss += productProfit
-            }
-        }
-
-        // Update the mutable states with the total profit and loss
-        profit.value = totalProfit
-        loss.value = totalLoss
-    } else {
-        // If no sales found, set profit and loss to 0
-        profit.value = 0.0
-        loss.value = 0.0
-        Log.e("error", "no sales found")
-    }
-}
-
 
 
 @Composable

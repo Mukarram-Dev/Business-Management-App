@@ -1,12 +1,15 @@
 package com.mukarram.businessmanagementapp.Presentaion.product_sales
 
+import com.mukarram.businessmanagementapp.DatabaseApp.DataClasses.ProductEntry
+
 data class SaleDetailsModel(
     val customerName: String,
-    val productName: String,
-    val saleQty: Int,
-    val salePrice: Double,
     val purchaseDate: String,
     val totalBill: Double,
+    val productName: String,
     val productType: String,
-    val purchasePrie: Double,
-)
+    val saleQty: Int,
+    val salePrice: Double,
+
+
+    )
